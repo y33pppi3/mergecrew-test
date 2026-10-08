@@ -1,23 +1,25 @@
-#!/usr/bin/env node
-// Simple test
-import http from 'node:http';
+// Self-contained tests: each test starts the app on a random free port (port 0).
+// No external server is required. Run with `npm test`.
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { createApp } from './index.js';
 
-const options = { hostname: 'localhost', port: 3000, path: '/', method: 'GET' };
+export async function withServer(fn) {
+  const server = createApp();
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const { port } = server.address();
+  try {
+    await fn(`http://127.0.0.1:${port}`);
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
+}
 
-const req = http.request(options, (res) => {
-  let data = '';
-  res.on('data', (chunk) => data += chunk);
-  res.on('end', () => {
-    const body = JSON.parse(data);
-    console.assert(body.status === 'ok', 'Status should be ok');
-    console.log('✅ Test passed:', body);
-    process.exit(0);
+test('GET / returns 200 with status ok', async () => {
+  await withServer(async (base) => {
+    const res = await fetch(`${base}/`);
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.equal(body.status, 'ok');
   });
 });
-
-req.on('error', (e) => {
-  console.error('❌ Test failed:', e.message);
-  process.exit(1);
-});
-
-req.end();

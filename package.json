@@ -5,6 +5,6 @@
   "description": "Test project for Mergecrew multi-agent SDLC pipeline",
   "scripts": {
     "start": "node src/index.js",
-    "test": "node src/index.test.js"
+    "test": "node --test src/"
   }
 }

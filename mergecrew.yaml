@@ -1,0 +1,31 @@
+version: 1
+lifecycle:
+  workflows:
+    - id: multi-agent
+      agents: [planner, coder, reviewer]
+agents:
+  planner:
+    kind: Planner
+    description: Reads the repo + intent and emits a structured markdown plan.
+    skills: [repo.read_file, repo.list_paths, repo.search]
+    maxStepsPerRun: 8
+    maxToolCallsPerStep: 12
+  coder:
+    kind: Coder
+    description: Implements the planner's plan as a diff, runs `npm test`, and commits with repo.git.commit when tests pass.
+    skills:
+      - repo.read_file
+      - repo.write_file
+      - repo.list_paths
+      - repo.search
+      - repo.git.commit
+      - build.run_unit_tests
+      - build.run_typecheck
+    maxStepsPerRun: 16
+    maxToolCallsPerStep: 20
+  reviewer:
+    kind: Reviewer
+    description: Decides approve / request_changes on the coder's diff against the plan.
+    skills: [repo.read_file, repo.list_paths, repo.search]
+    maxStepsPerRun: 4
+    maxToolCallsPerStep: 8

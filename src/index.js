@@ -1,19 +1,24 @@
 #!/usr/bin/env node
-// Simple REST API server
+// Simple REST API server (no frameworks).
+// createApp() builds the server WITHOUT listening, so tests can start it on a random port.
 import { createServer } from 'node:http';
+import { pathToFileURL } from 'node:url';
 
-const server = createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({
-    status: 'ok',
-    message: 'Hello from mergecrew-test',
-    timestamp: new Date().toISOString()
-  }));
-});
+export function createApp() {
+  return createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      status: 'ok',
+      message: 'Hello from mergecrew-test',
+      timestamp: new Date().toISOString()
+    }));
+  });
+}
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
-export default server;
+// Start listening only when run directly (`npm start`), not when imported by tests.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const PORT = process.env.PORT || 3000;
+  createApp().listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
