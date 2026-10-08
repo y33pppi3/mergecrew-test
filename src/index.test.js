@@ -23,3 +23,12 @@ test('GET / returns 200 with status ok', async () => {
     assert.equal(body.status, 'ok');
   });
 });
+
+test('GET /health returns 200 with status ok', async () => {
+  await withServer(async (base) => {
+    const res = await fetch(`${base}/health`);
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.equal(body.status, 'ok');
+  });
+});
